@@ -2,6 +2,7 @@ import requests
 import re
 from dataclasses import dataclass
 import html
+from colorama import Fore
 
 
 def get_latest_posts():
@@ -22,7 +23,7 @@ def id_to_url(id: str) -> str:
 
 def get_html(id: str) -> str:
     url = id_to_url(id)
-    print("URL is", url)
+    print(f"{Fore.LIGHTBLACK_EX}URL is {url}{Fore.RESET}")
     return html.unescape(requests.get(url).text)
 
 

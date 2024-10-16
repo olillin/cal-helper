@@ -3,8 +3,13 @@ from dataclasses import dataclass
 from datetime import datetime
 import re
 from os import environ
+from colorama import Fore
 
 CALENDAR_ID: str = environ.get("CALENDAR_ID")
+
+
+def print_context(s: str):
+    print(f"\n{Fore.MAGENTA}Context:{Fore.RESET}\n{s}\n")
 
 
 @dataclass
@@ -102,11 +107,12 @@ def find_date(body: str) -> datetime:
 
     # Failed to find date
     if date is None:
-        print(body)
-        print()
-        manual_time = input("Could not find date, please enter manually: ").strip()
+        print_context(body)
+        manual_time = input(
+            f"{Fore.YELLOW}Could not find date, please enter manually: {Fore.RESET}"
+        ).strip()
         if manual_time == "":
-            print("Cancelled")
+            print(f"{Fore.RED}Cancelled{Fore.RESET}")
             exit()
         date = datetime.fromisoformat(manual_time)
     else:
@@ -125,9 +131,10 @@ def find_date(body: str) -> datetime:
             time = hour, minute
 
         if time is None:
-            print(body)
-            print()
-            manual_time = input("Could not find time, please enter manually: ").strip()
+            print_context(body)
+            manual_time = input(
+                f"{Fore.YELLOW}Could not find time, please enter manually: {Fore.RESET}"
+            ).strip()
             if manual_time != "":
                 match = re.search(time_patterns[0], manual_time)
 
