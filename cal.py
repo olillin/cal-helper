@@ -19,16 +19,19 @@ class Event:
     location: str | None
     start: datetime
     end: datetime
+    all_day: bool
 
 
 def find_date(body: str) -> datetime:
+    date: datetime | None = None
+    time: tuple[int, int] | None = None
+
     # Find date
     date_patterns = [  #
         r"(\d{1,2})/(\d{1,2})",
         r"(\d{1,2})-(\d{1,2})",
         r"(\d{1,2})(:e)? (\w+)",
     ]
-    date: datetime | None = None
 
     if re.search(date_patterns[0], body):
         match = re.search(date_patterns[0], body)
@@ -117,8 +120,6 @@ def find_date(body: str) -> datetime:
         date = datetime.fromisoformat(manual_time)
     else:
         # Find time
-        time: tuple[int, int] | None = None
-
         time_patterns = [  #
             r"(\d{1,2})[:.](\d{2})",
         ]
@@ -141,9 +142,12 @@ def find_date(body: str) -> datetime:
                 hour = int(match.group(1))
                 minute = int(match.group(2))
 
-                date = datetime(date.year, date.month, date.day, hour, minute)
-        else:
-            date = datetime(date.year, date.month, date.day, time[0], time[1])
+                time = hour, minute
+
+    if time is not None:
+        date = datetime(date.year, date.month, date.day, time[0], time[1])
+    else:
+        date = datetime(date.year, date.month, date.day, 0, 0, 1)
 
     return date
 
@@ -190,7 +194,7 @@ def event_from_post(post: Post, default_duration: int = 60) -> Event:
     # Location
     location = find_location(post.body)
 
-    return Event(summary, description, location, start, end)
+    return Event(summary, description, location, start, end, start.second == 1)
 
 
 def publish_event(event: Event) -> bool:
