@@ -50,14 +50,16 @@ class Post:
 def scrape_post(id: str) -> Post:
     html = get_html(id)
 
-    title = re.findall(r'<h2 class="NewsPost_title_.{6}">(.*?)</h2>', html)[0]
+    title = re.search(r'<h2 class="NewsPost_title_.{6}">(.*?)</h2>', html).group(1)
 
-    subtitle = re.findall(r'<p class="NewsPostMeta_subtitle__uaB4X">(.+?)</p>', html)[0]
+    subtitle = re.search(
+        r'<p class="NewsPostMeta_subtitle__uaB4X">(.+?)</p>', html
+    ).group(1)
     subtitle = remove_repeating(remove_tags(subtitle))
 
-    body_html = re.findall(
+    body_html = re.search(
         r'<div class="MarkdownView_content_.{6}">(.+?)</div>', html, flags=re.S
-    )[0]
+    ).group(1)
 
     paragraphs = re.findall(r"<p>(.*?)</p>", body_html, flags=re.S)
     body = "\n\n".join([format_tag(p) for p in paragraphs])
