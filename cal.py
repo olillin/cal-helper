@@ -47,7 +47,7 @@ def find_date(body: str) -> datetime:
             date = datetime(today.year + 1, month, day)
     elif re.search(date_patterns[2], body):
         match = re.search(date_patterns[2], body)
-        month = [
+        months = [
             "januari",
             "februari",
             "mars",
@@ -60,7 +60,8 @@ def find_date(body: str) -> datetime:
             "oktober",
             "november",
             "december",
-        ].index(match.group(3).lower())
+        ]
+        month = months.index(match.group(3).lower()) + 1
         day = int(match.group(1))
 
         today = datetime.today()
