@@ -113,7 +113,7 @@ def find_date(body: str) -> datetime:
         time: tuple[int, int] | None = None
 
         time_patterns = [  #
-            r"(\d{1,2})[:.](\d{1,2})",
+            r"(\d{1,2})[:.](\d{2})",
         ]
         if re.search(time_patterns[0], body):
             match = re.search(time_patterns[0], body)
@@ -142,18 +142,22 @@ def find_date(body: str) -> datetime:
 
 def find_location(body: str) -> str | None:
     location_patterns = [  #
-        r"^var.? (.+)$",
-        r"i \b(.+?)\b",
+        r"^var\b.?\s*(.+)$"
     ]
-    if re.search(location_patterns[0], body, flags=re.I):
-        match = re.search(location_patterns[0], body, flags=re.I)
+    common_locations = [
+        "Hubben 2.2",
+        "Hubben",
+    ]
+    if re.search(location_patterns[0], body, flags=re.I + re.M):
+        match = re.search(location_patterns[0], body, flags=re.I + re.M)
         return match.group(1)
-    elif re.search(location_patterns[1], body, flags=re.I):
-        match = re.search(location_patterns[1], body, flags=re.I)
-        return match.group(1)
+    else:
+        for l in common_locations:
+            if l in body:
+                return l
 
 
-def event_from_post(post: Post, default_duration: int = 120) -> Event:
+def event_from_post(post: Post, default_duration: int = 60) -> Event:
     summary = post.title
     description = post.body
 

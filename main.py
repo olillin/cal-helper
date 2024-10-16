@@ -40,8 +40,8 @@ def main():
     print("\nDrafted event:\n")
     print_event(event)
     print("\n")
-    procceed = input("Continue? (y/N) ")
-    if procceed.upper() != "Y":
+    procceed = input("Continue? (Y/n) ")
+    if procceed.lower() == "n":
         print("Cancelled")
         exit()
 
