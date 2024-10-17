@@ -122,6 +122,6 @@ def publish_body(session: OAuth2Session, calendar_id: str, body: dict[str, Any])
 def publish_event(session: OAuth2Session, calendar_id: str, event: Event):
     body = event_to_body(event)
     print(f"\n{Fore.LIGHTGREEN_EX}Constructed JSON body{Fore.RESET}")
-    print(Fore.BLACK + json.dumps(body, indent=2) + Fore.RESET)
+    print(Fore.LIGHTBLACK_EX + json.dumps(body, indent=2) + Fore.RESET)
 
     publish_body(session, calendar_id, body)

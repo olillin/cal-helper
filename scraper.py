@@ -23,7 +23,7 @@ def id_to_url(id: str) -> str:
 
 def get_html(id: str) -> str:
     url = id_to_url(id)
-    print(f"{Fore.BLACK}URL is {url}{Fore.RESET}")
+    print(f"{Fore.LIGHTBLACK_EX}URL is {url}{Fore.RESET}")
     return html.unescape(requests.get(url).text)
 
 

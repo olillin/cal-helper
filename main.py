@@ -34,7 +34,7 @@ def select_post():
 
     print(f"{Fore.LIGHTCYAN_EX}Latest posts on chalmers.it:")
     for id, title in latest_posts:
-        print(f" {Fore.LIGHTMAGENTA_EX}{id}{Fore.BLACK}: {Fore.RESET}{title}")
+        print(f" {Fore.LIGHTMAGENTA_EX}{id}{Fore.LIGHTBLACK_EX}: {Fore.RESET}{title}")
 
     print()
     selected = input(
@@ -47,20 +47,20 @@ def select_post():
 
 
 def print_post(post: Post):
-    print(f"{Fore.BLACK}# {Fore.RESET}" + post.title)
-    print(f"{Fore.BLACK}> {Fore.RESET}" + post.subtitle)
+    print(f"{Fore.LIGHTBLACK_EX}# {Fore.RESET}" + post.title)
+    print(f"{Fore.LIGHTBLACK_EX}> {Fore.RESET}" + post.subtitle)
     print()
     print(post.body)
 
 
 def print_event(event: Event):
-    print(f"{Fore.BLACK}# {Fore.RESET}" + event.summary)
-    print(f"{Fore.BLACK}@ {Fore.RESET}{event.location}")
+    print(f"{Fore.LIGHTBLACK_EX}# {Fore.RESET}" + event.summary)
+    print(f"{Fore.LIGHTBLACK_EX}@ {Fore.RESET}{event.location}")
     if event.all_day:
-        print(f"{Fore.BLACK}> {Fore.RESET}{event.start.date()}")
+        print(f"{Fore.LIGHTBLACK_EX}> {Fore.RESET}{event.start.date()}")
     else:
         print(
-            f"{Fore.BLACK}> {Fore.RESET}{event.start} {Fore.BLACK}until{Fore.RESET} {event.end}"
+            f"{Fore.LIGHTBLACK_EX}> {Fore.RESET}{event.start} {Fore.LIGHTBLACK_EX}until{Fore.RESET} {event.end}"
         )
     print()
     print(event.description)
