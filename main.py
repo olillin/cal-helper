@@ -1,7 +1,32 @@
 from scraper import get_latest_posts, scrape_post, Post
 from parse_event import event_from_post, Event
-from publish_event import publish_event
+from publish_event import authorize, publish_event, refresh_token
 from colorama import Fore
+import os
+from dotenv import load_dotenv
+from requests_oauthlib import OAuth2Session
+
+
+def get_required_env(name: str) -> str:
+    if name not in os.environ:
+        print(
+            f"{Fore.LIGHTRED_EX}Missing required environment variable {name}{Fore.RESET}"
+        )
+        exit(1)
+    return os.environ[name]
+
+
+def setup_env():
+    load_dotenv()
+
+    global CLIENT_ID
+    CLIENT_ID = get_required_env("CLIENT_ID")
+    global CLIENT_SECRET
+    CLIENT_SECRET = get_required_env("CLIENT_SECRET")
+    global REDIRECT_URI
+    REDIRECT_URI = get_required_env("REDIRECT_URI")
+    global CALENDAR_ID
+    CALENDAR_ID = get_required_env("CALENDAR_ID")
 
 
 def select_post():
@@ -41,7 +66,34 @@ def print_event(event: Event):
     print(event.description)
 
 
+def get_session() -> OAuth2Session:
+    global CLIENT_ID
+    global CLIENT_SECRET
+    global REDIRECT_URI
+
+    session = None
+    if os.path.isfile("refresh-token"):
+        try:
+            with open("refresh-token", "r", encoding="utf-8") as f:
+                token = f.read()
+            session = refresh_token(token, CLIENT_ID, CLIENT_SECRET)
+        except Exception as e:
+            print(f"{Fore.LIGHTRED_EX}Failed to refresh token:\n{e}{Fore.RESET}\n")
+
+    if not session:
+        scope = ["https://www.googleapis.com/auth/calendar.events.owned"]
+        session = authorize(CLIENT_ID, CLIENT_SECRET, scope, REDIRECT_URI)
+
+    with open("refresh-token", "w+") as f:
+        f.write(session.token.get("refresh_token"))
+
+    return session
+
+
 def main():
+    # Get environment variables
+    setup_env()
+
     post = select_post()
 
     # Create calendar event
@@ -56,7 +108,10 @@ def main():
         print(f"{Fore.RED}Cancelled{Fore.RESET}")
         exit()
 
-    publish_event(event)
+    print(f"\n{Fore.LIGHTGREEN_EX}Authorizing with Google{Fore.RESET}\n")
+    session = get_session()
+
+    publish_event(session, CALENDAR_ID, event)
 
 
 if __name__ == "__main__":
