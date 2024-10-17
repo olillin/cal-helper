@@ -1,5 +1,6 @@
 from scraper import get_latest_posts, scrape_post, Post
-from cal import event_from_post, publish_event, Event
+from parse_event import event_from_post, Event
+from publish_event import publish_event
 from colorama import Fore
 
 
@@ -8,29 +9,33 @@ def select_post():
 
     print(f"{Fore.LIGHTCYAN_EX}Latest posts on chalmers.it:")
     for id, title in latest_posts:
-        print(f" {Fore.LIGHTMAGENTA_EX}{id}{Fore.LIGHTBLACK_EX}: {Fore.RESET}{title}")
+        print(f" {Fore.LIGHTMAGENTA_EX}{id}{Fore.BLACK}: {Fore.RESET}{title}")
 
     print()
-    selected = input(f"{Fore.YELLOW}Select post id (or enter url): {Fore.RESET}")
+    selected = input(
+        f"{Fore.YELLOW}Select post id (or enter url): {Fore.RESET}"
+    ).strip()
+    if selected == "":
+        selected = latest_posts[0][0]
 
     return scrape_post(selected)
 
 
 def print_post(post: Post):
-    print(f"{Fore.LIGHTBLACK_EX}# {Fore.RESET}" + post.title)
-    print(f"{Fore.LIGHTBLACK_EX}> {Fore.RESET}" + post.subtitle)
+    print(f"{Fore.BLACK}# {Fore.RESET}" + post.title)
+    print(f"{Fore.BLACK}> {Fore.RESET}" + post.subtitle)
     print()
     print(post.body)
 
 
 def print_event(event: Event):
-    print(f"{Fore.LIGHTBLACK_EX}# {Fore.RESET}" + event.summary)
-    print(f"{Fore.LIGHTBLACK_EX}@ {Fore.RESET}{event.location}")
+    print(f"{Fore.BLACK}# {Fore.RESET}" + event.summary)
+    print(f"{Fore.BLACK}@ {Fore.RESET}{event.location}")
     if event.all_day:
-        print(f"{Fore.LIGHTBLACK_EX}> {Fore.RESET}{event.start.date()}")
+        print(f"{Fore.BLACK}> {Fore.RESET}{event.start.date()}")
     else:
         print(
-            f"{Fore.LIGHTBLACK_EX}> {Fore.RESET}{event.start} {Fore.LIGHTBLACK_EX}until{Fore.RESET} {event.end}"
+            f"{Fore.BLACK}> {Fore.RESET}{event.start} {Fore.BLACK}until{Fore.RESET} {event.end}"
         )
     print()
     print(event.description)

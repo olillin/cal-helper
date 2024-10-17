@@ -2,10 +2,7 @@ from scraper import Post
 from dataclasses import dataclass
 from datetime import datetime
 import re
-from os import environ
 from colorama import Fore
-
-CALENDAR_ID: str = environ.get("CALENDAR_ID")
 
 
 def print_context(s: str):
@@ -195,8 +192,3 @@ def event_from_post(post: Post, default_duration: int = 60) -> Event:
     location = find_location(post.body)
 
     return Event(summary, description, location, start, end, start.second == 1)
-
-
-def publish_event(event: Event) -> bool:
-    # TODO
-    return False
