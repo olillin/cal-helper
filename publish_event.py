@@ -1,13 +1,12 @@
 from parse_event import Event
 from typing import Any
 import json
-from requests import post
 from colorama import Fore
 from requests_oauthlib import OAuth2Session
 
 
 def event_to_body(event: Event, timezone: str = "Europe/Stockholm") -> dict[str, Any]:
-    entries = []
+    entries: list[tuple[str, Any]] = []
 
     if event.all_day:
         entries.append(
@@ -66,7 +65,7 @@ def authorize(
     authorization_base_url = "https://accounts.google.com/o/oauth2/v2/auth"
 
     # Redirect user to Google for authorization
-    authorization_url, state = session.authorization_url(
+    authorization_url, _ = session.authorization_url(
         authorization_base_url,
         # offline for refresh token
         # force to always make user click authorize
@@ -96,13 +95,10 @@ def refresh_token(
     """Refresh an OAuth2 token using a refresh token."""
     token_url = "https://www.googleapis.com/oauth2/v4/token"
 
-    extra = {
-        "client_id": client_id,
-        "client_secret": client_secret,
-    }
-
     session = OAuth2Session(client_id)
-    session.token = session.refresh_token(token_url, refresh_token, **extra)
+    session.token = session.refresh_token(
+        token_url, refresh_token, client_id=client_id, client_secret=client_secret
+    )
     return session
 
 
@@ -122,6 +118,6 @@ def publish_body(session: OAuth2Session, calendar_id: str, body: dict[str, Any])
 def publish_event(session: OAuth2Session, calendar_id: str, event: Event):
     body = event_to_body(event)
     print(f"\n{Fore.LIGHTGREEN_EX}Constructed JSON body{Fore.RESET}")
-    print(Fore.BLACK + json.dumps(body, indent=2) + Fore.RESET)
+    print(Fore.LIGHTBLACK_EX + json.dumps(body, indent=2) + Fore.RESET)
 
     publish_body(session, calendar_id, body)

@@ -32,6 +32,7 @@ def find_date(body: str) -> datetime:
 
     if re.search(date_patterns[0], body):
         match = re.search(date_patterns[0], body)
+        assert match
         day = int(match.group(1))
         month = int(match.group(2))
 
@@ -42,6 +43,7 @@ def find_date(body: str) -> datetime:
             date = datetime(today.year + 1, month, day)
     elif re.search(date_patterns[1], body):
         match = re.search(date_patterns[1], body)
+        assert match
         month = int(match.group(1))
         day = int(match.group(2))
 
@@ -52,6 +54,7 @@ def find_date(body: str) -> datetime:
             date = datetime(today.year + 1, month, day)
     elif re.search(date_patterns[2], body):
         match = re.search(date_patterns[2], body)
+        assert match
         months = [
             "januari",
             "februari",
@@ -122,6 +125,7 @@ def find_date(body: str) -> datetime:
         ]
         if re.search(time_patterns[0], body):
             match = re.search(time_patterns[0], body)
+            assert match
 
             hour = int(match.group(1))
             minute = int(match.group(2))
@@ -135,6 +139,7 @@ def find_date(body: str) -> datetime:
             ).strip()
             if manual_time != "":
                 match = re.search(time_patterns[0], manual_time)
+                assert match
 
                 hour = int(match.group(1))
                 minute = int(match.group(2))
@@ -159,11 +164,12 @@ def find_location(body: str) -> str | None:
     ]
     if re.search(location_patterns[0], body, flags=re.I + re.M):
         match = re.search(location_patterns[0], body, flags=re.I + re.M)
+        assert match
         return match.group(1)
     else:
-        for l in common_locations:
-            if l in body:
-                return l
+        for location in common_locations:
+            if location in body:
+                return location
 
 
 def event_from_post(post: Post, default_duration: int = 60) -> Event:
@@ -192,3 +198,17 @@ def event_from_post(post: Post, default_duration: int = 60) -> Event:
     location = find_location(post.body)
 
     return Event(summary, description, location, start, end, start.second == 1)
+
+
+def format_slack_body(body: str) -> str:
+    return re.sub(r"(@\w+|:[\w-]+:)", "", body).strip()
+
+
+def parse_slack(text: str) -> Post:
+    title = input(f"{Fore.YELLOW}Please enter title: {Fore.RESET}")
+    if len(title) == 0:
+        print(f"{Fore.RED}Invalid title{Fore.RESET}")
+        exit()
+    body = format_slack_body(text)
+
+    return Post(title, "", body)

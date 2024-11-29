@@ -1,10 +1,11 @@
-from scraper import get_latest_posts, scrape_post, Post
-from parse_event import event_from_post, Event
+from scraper import Post, get_latest_posts, scrape_post
+from parse_event import Event, event_from_post, parse_slack
 from publish_event import authorize, publish_event, refresh_token
 from colorama import Fore
 import os
 from dotenv import load_dotenv
 from requests_oauthlib import OAuth2Session
+import re
 
 
 def get_required_env(name: str) -> str:
@@ -34,33 +35,41 @@ def select_post():
 
     print(f"{Fore.LIGHTCYAN_EX}Latest posts on chalmers.it:")
     for id, title in latest_posts:
-        print(f" {Fore.LIGHTMAGENTA_EX}{id}{Fore.BLACK}: {Fore.RESET}{title}")
+        print(f" {Fore.LIGHTMAGENTA_EX}{id}{Fore.LIGHTBLACK_EX}: {Fore.RESET}{title}")
 
     print()
     selected = input(
         f"{Fore.YELLOW}Select post id (or enter url): {Fore.RESET}"
     ).strip()
     if selected == "":
+        # Latest post on chalmers.it
         selected = latest_posts[0][0]
-
-    return scrape_post(selected)
+    elif re.match(r"^(https://.+|\d+)$", selected):
+        # Post on chalmers.it
+        return scrape_post(selected)
+    else:
+        # Text input
+        lines = [selected]
+        while len(line := input()) != 0:
+            lines.append(line)
+        return parse_slack("\n".join(lines))
 
 
 def print_post(post: Post):
-    print(f"{Fore.BLACK}# {Fore.RESET}" + post.title)
-    print(f"{Fore.BLACK}> {Fore.RESET}" + post.subtitle)
+    print(f"{Fore.LIGHTBLACK_EX}# {Fore.RESET}" + post.title)
+    print(f"{Fore.LIGHTBLACK_EX}> {Fore.RESET}" + post.subtitle)
     print()
     print(post.body)
 
 
 def print_event(event: Event):
-    print(f"{Fore.BLACK}# {Fore.RESET}" + event.summary)
-    print(f"{Fore.BLACK}@ {Fore.RESET}{event.location}")
+    print(f"{Fore.LIGHTBLACK_EX}# {Fore.RESET}" + event.summary)
+    print(f"{Fore.LIGHTBLACK_EX}@ {Fore.RESET}{event.location}")
     if event.all_day:
-        print(f"{Fore.BLACK}> {Fore.RESET}{event.start.date()}")
+        print(f"{Fore.LIGHTBLACK_EX}> {Fore.RESET}{event.start.date()}")
     else:
         print(
-            f"{Fore.BLACK}> {Fore.RESET}{event.start} {Fore.BLACK}until{Fore.RESET} {event.end}"
+            f"{Fore.LIGHTBLACK_EX}> {Fore.RESET}{event.start} {Fore.LIGHTBLACK_EX}until{Fore.RESET} {event.end}"
         )
     print()
     print(event.description)
