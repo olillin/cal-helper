@@ -198,3 +198,17 @@ def event_from_post(post: Post, default_duration: int = 60) -> Event:
     location = find_location(post.body)
 
     return Event(summary, description, location, start, end, start.second == 1)
+
+
+def format_slack_body(body: str) -> str:
+    return re.sub(r"(@\w+|:[\w-]+:)", "", body).strip()
+
+
+def parse_slack(text: str) -> Post:
+    title = input(f"{Fore.YELLOW}Please enter title: {Fore.RESET}")
+    if len(title) == 0:
+        print(f"{Fore.RED}Invalid title{Fore.RESET}")
+        exit()
+    body = format_slack_body(text)
+
+    return Post(title, "", body)

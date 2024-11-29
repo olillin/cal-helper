@@ -1,10 +1,11 @@
-from scraper import get_latest_posts, scrape_post, Post
-from parse_event import event_from_post, Event
+from scraper import Post, get_latest_posts, scrape_post
+from parse_event import Event, event_from_post, parse_slack
 from publish_event import authorize, publish_event, refresh_token
 from colorama import Fore
 import os
 from dotenv import load_dotenv
 from requests_oauthlib import OAuth2Session
+import re
 
 
 def get_required_env(name: str) -> str:
@@ -41,9 +42,17 @@ def select_post():
         f"{Fore.YELLOW}Select post id (or enter url): {Fore.RESET}"
     ).strip()
     if selected == "":
+        # Latest post on chalmers.it
         selected = latest_posts[0][0]
-
-    return scrape_post(selected)
+    elif re.match(r"^(https://.+|\d+)$", selected):
+        # Post on chalmers.it
+        return scrape_post(selected)
+    else:
+        # Text input
+        lines = [selected]
+        while len(line := input()) != 0:
+            lines.append(line)
+        return parse_slack("\n".join(lines))
 
 
 def print_post(post: Post):
