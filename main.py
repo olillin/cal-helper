@@ -30,7 +30,7 @@ def setup_env():
     CALENDAR_ID = get_required_env("CALENDAR_ID")
 
 
-def select_post():
+def select_post() -> Post:
     latest_posts = get_latest_posts()
 
     print(f"{Fore.LIGHTCYAN_EX}Latest posts on chalmers.it:")
@@ -44,7 +44,8 @@ def select_post():
     if selected == "":
         # Latest post on chalmers.it
         selected = latest_posts[0][0]
-    elif re.match(r"^(https://.+|\d+)$", selected):
+
+    if re.match(r"^(https://.+|\d+)$", selected):
         # Post on chalmers.it
         return scrape_post(selected)
     else:
