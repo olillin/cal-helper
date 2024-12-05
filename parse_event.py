@@ -1,3 +1,4 @@
+from typing import Sequence
 from scraper import Post
 from dataclasses import dataclass
 from datetime import datetime
@@ -19,112 +20,161 @@ class Event:
     all_day: bool
 
 
+def find_all(
+    body: str, patterns: Sequence[re.Pattern[str] | str]
+) -> list[tuple[int, re.Match[str]]]:
+    all_matches: list[tuple[int, re.Match[str]]] = []
+
+    for i, pattern in enumerate(patterns):
+        matches = re.finditer(pattern, body)
+        all_matches.extend([(i, match) for match in matches])
+
+    all_matches.sort(key=lambda x: x[1].pos)
+
+    return all_matches
+
+
+weekdays = [
+    "måndag",
+    "tisdag",
+    "onsdag",
+    "torsdag",
+    "fredag",
+    "lördag",
+    "söndag",
+]
+
+
+weekday_pattern = re.compile(r"\b(" + "|".join(weekdays) + r")\b", flags=re.IGNORECASE)
+
+months = [
+    "januari",
+    "februari",
+    "mars",
+    "april",
+    "maj",
+    "juni",
+    "juli",
+    "augusti",
+    "september",
+    "oktober",
+    "november",
+    "december",
+]
+
+month_pattern = re.compile(
+    r"(0?[1-9]|[1-2]\d|3[0-1])(:[ea])? (" + "|".join(months) + r")\b",
+    flags=re.IGNORECASE,
+)
+
+date_patterns = [  #
+    r"(?<![:\d])(\d{1,2})/(\d{1,2})(?![:\d])",
+    r"(?<![:\d])(\d{1,2})-(\d{1,2})(?![:\d])",
+    month_pattern,
+    weekday_pattern,
+]
+
+
+def extract_date(pattern_num: int, match: re.Match[str], body: str) -> datetime:
+    """Convert a matched date to datetime"""
+    date = None
+    today = datetime.today()
+    lock_year = False
+
+    if pattern_num == 0:
+        day = int(match.group(1))
+        month = int(match.group(2))
+
+        date = datetime(today.year, month, day)
+    elif pattern_num == 1:
+        month = int(match.group(1))
+        day = int(match.group(2))
+
+        date = datetime(today.year, month, day)
+
+    elif pattern_num == 2:
+        month = months.index(match.group(3).lower()) + 1
+        day = int(match.group(1))
+
+        date = datetime(today.year, month, day)
+
+    elif pattern_num == 3:
+        weekday = weekdays.index(match.group(0).lower())
+
+        week_offset = 0
+        if "nästa vecka" in body:
+            week_offset = 1
+
+        if today.weekday() <= weekday:
+            weekday += 7
+            week_offset = 0
+
+        day = today.day + weekday - today.weekday() + week_offset * 7
+        month = today.month if day > today.day else today.month + 1
+        year = today.year if month > today.month else today.year + 1
+
+        date = datetime(year, month, day)
+        lock_year = True
+
+    else:
+        raise ValueError(f"Illegal pattern number {pattern_num}")
+
+    # Move to next year instead of beginning of this year
+    if not lock_year and date is not None and date < today:
+        date = datetime(today.year + 1, date.month, date.day)
+
+    return date
+
+
+time_patterns = [  #
+    r"(\d{1,2})[:.](\d{2})",
+]
+
+
+def extract_time(pattern_num: int, match: re.Match[str], body: str) -> tuple[int, int]:
+    """Convert a matched time to hours and minutes"""
+    if pattern_num == 0:
+        hours = int(match.group(1))
+        minute = int(match.group(2))
+    else:
+        raise ValueError(f"Illegal pattern number {pattern_num}")
+
+    return hours, minute
+
+
 def find_date(body: str) -> datetime:
     date: datetime | None = None
     time: tuple[int, int] | None = None
 
     # Find date
-    date_patterns = [  #
-        r"(\d{1,2})/(\d{1,2})",
-        r"(\d{1,2})-(\d{1,2})",
-        r"(\d{1,2})(:e)? (\w+)",
-    ]
+    dates = find_all(body, date_patterns)
 
-    if re.search(date_patterns[0], body):
-        match = re.search(date_patterns[0], body)
-        assert match
-        day = int(match.group(1))
-        month = int(match.group(2))
-
-        today = datetime.today()
-
-        date = datetime(today.year, month, day)
-        if date < today:
-            date = datetime(today.year + 1, month, day)
-    elif re.search(date_patterns[1], body):
-        match = re.search(date_patterns[1], body)
-        assert match
-        month = int(match.group(1))
-        day = int(match.group(2))
-
-        today = datetime.today()
-
-        date = datetime(today.year, month, day)
-        if date < today:
-            date = datetime(today.year + 1, month, day)
-    elif re.search(date_patterns[2], body):
-        match = re.search(date_patterns[2], body)
-        assert match
-        months = [
-            "januari",
-            "februari",
-            "mars",
-            "april",
-            "maj",
-            "juni",
-            "juli",
-            "augusti",
-            "september",
-            "oktober",
-            "november",
-            "december",
-        ]
-        month = months.index(match.group(3).lower()) + 1
-        day = int(match.group(1))
-
-        today = datetime.today()
-
-        date = datetime(today.year, month, day)
-        if date < today:
-            date = datetime(today.year + 1, month, day)
+    if len(dates) > 0:
+        date = extract_date(*dates[0], body)
     else:
-        weekdays = [
-            "måndag",
-            "tisdag",
-            "onsdag",
-            "torsdag",
-            "fredag",
-            "lördag",
-            "söndag",
-        ]
-        weekday_pattern = re.compile(r"\b(" + "|".join(weekdays) + r")\b", flags=re.I)
-        match = re.search(weekday_pattern, body)
-        if match:
-            weekday = weekdays.index(match.group(0).lower())
-
-            week_offset = 0
-            if "nästa vecka" in body:
-                week_offset = 1
-
-            today = datetime.today()
-
-            if today.weekday() <= weekday:
-                weekday += 7
-                week_offset = 0
-
-            day = today.day + weekday - today.weekday() + week_offset * 7
-            month = today.month if day > today.day else today.month + 1
-            year = today.year if month > today.month else today.year + 1
-
-            date = datetime(year, month, day)
-
-    # Failed to find date
-    if date is None:
+        # Could not find date in body
         print_context(body)
-        manual_time = input(
+        manual_date = input(
             f"{Fore.YELLOW}Could not find date, please enter manually: {Fore.RESET}"
         ).strip()
-        if manual_time == "":
+        if manual_date == "":
             print(f"{Fore.RED}Cancelled{Fore.RESET}")
             exit()
-        date = datetime.fromisoformat(manual_time)
+
+        date = datetime.fromisoformat(manual_date)
+
+    # Find time
+    times = find_all(body, time_patterns)
+
+    if len(times) > 0:
+        time = extract_time(*times[0], body)
     else:
-        # Find time
-        time_patterns = [  #
-            r"(\d{1,2})[:.](\d{2})",
-        ]
-        if re.search(time_patterns[0], body):
-            match = re.search(time_patterns[0], body)
+        print_context(body)
+        manual_time = input(
+            f"{Fore.YELLOW}Could not find time, please enter manually: {Fore.RESET}"
+        ).strip()
+        if manual_time != "":
+            match = re.search(time_patterns[0], manual_time)
             assert match
 
             hour = int(match.group(1))
@@ -132,22 +182,8 @@ def find_date(body: str) -> datetime:
 
             time = hour, minute
 
-        if time is None:
-            print_context(body)
-            manual_time = input(
-                f"{Fore.YELLOW}Could not find time, please enter manually: {Fore.RESET}"
-            ).strip()
-            if manual_time != "":
-                match = re.search(time_patterns[0], manual_time)
-                assert match
-
-                hour = int(match.group(1))
-                minute = int(match.group(2))
-
-                time = hour, minute
-
     if time is not None:
-        date = datetime(date.year, date.month, date.day, time[0], time[1])
+        date = datetime(date.year, date.month, date.day, *time)
     else:
         date = datetime(date.year, date.month, date.day, 0, 0, 1)
 
