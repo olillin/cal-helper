@@ -5,7 +5,7 @@ import html
 from colorama import Fore
 
 
-def get_latest_posts():
+def get_latest_posts() -> list[str]:
     homepage = requests.get("https://chalmers.it/").text
     pattern = re.compile(r'<a href="/post/(\d+)">(.*?)</a>')
     return re.findall(pattern, homepage)
