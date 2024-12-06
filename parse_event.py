@@ -158,9 +158,9 @@ def later(date: datetime, minutes: int) -> datetime:
     if minute >= 60:
         hour += minute // 60
         minute %= 60
-    if hour >= 60:
-        day += hour // 60
-        hour %= 60
+    if hour >= 24:
+        day += hour // 24
+        hour %= 24
 
     last_day_of_month = monthrange(year, month)[1]
     while day > last_day_of_month:
