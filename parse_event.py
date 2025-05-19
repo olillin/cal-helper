@@ -241,7 +241,7 @@ def find_date(
 
 def find_location(body: str) -> str | None:
     location_patterns = [  #
-        r"^(?:vart?|plats|location).+?\b(.+)$"
+        r"^(?:vart?|plats|location).+?\b(.+)$",
         r"\bHubben 2.2\b",
         r"\bStorhubben\b",
         r"\bHubben\b",
@@ -253,7 +253,9 @@ def find_location(body: str) -> str | None:
         match = re.search(pattern, body, flags=re.I + re.M)
         if match:
             assert match
-            return match.group(1)
+            if len(match.groups()) > 0:
+                return match.group(1)
+            return match.group(0)
 
 
 def event_from_post(post: Post, default_duration: int = 60) -> Event:
