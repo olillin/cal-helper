@@ -1,53 +1,40 @@
-from scraper import Post, get_latest_posts, scrape_post
-from parse_event import Event, event_from_post, parse_slack
-from publish_event import authorize, publish_event, refresh_token
-from colorama import Fore
 import os
-from dotenv import load_dotenv
-from requests_oauthlib import OAuth2Session
 import re
 
+from colorama import Fore
+from requests_oauthlib import OAuth2Session
 
-def get_required_env(name: str) -> str:
-    if name not in os.environ:
-        print(
-            f"{Fore.LIGHTRED_EX}Missing required environment variable {name}{Fore.RESET}"
-        )
-        exit(1)
-    return os.environ[name]
-
-
-def setup_env():
-    load_dotenv()
-
-    global CLIENT_ID
-    CLIENT_ID = get_required_env("CLIENT_ID")
-    global CLIENT_SECRET
-    CLIENT_SECRET = get_required_env("CLIENT_SECRET")
-    global REDIRECT_URI
-    REDIRECT_URI = get_required_env("REDIRECT_URI")
-    global CALENDAR_ID
-    CALENDAR_ID = get_required_env("CALENDAR_ID")
+from env import CALENDAR_ID, CLIENT_ID, CLIENT_SECRET, REDIRECT_URI
+from events_service import Event
+from parse_event import event_from_post, parse_slack
+from publish_event import authorize, publish_event, refresh_token
+from events_service import EventsService
+from news_service import NewsService, Post
+from util import get_id, saturate_posts
 
 
 def select_post() -> Post:
-    latest_posts = get_latest_posts()
+    latest_posts = NewsService.get_latest_posts(10)
+    latest_events = EventsService.get_latest_events(10)
+    saturate_posts(latest_posts, latest_events)
 
     print(f"{Fore.LIGHTCYAN_EX}Latest posts on chalmers.it:")
-    for id, title in latest_posts:
-        print(f" {Fore.LIGHTMAGENTA_EX}{id}{Fore.LIGHTBLACK_EX}: {Fore.RESET}{title}")
+    for post in latest_posts:
+        color = Fore.WHITE if post.event is None else Fore.CYAN
+        print(
+            f" {Fore.LIGHTMAGENTA_EX}{post.id}{Fore.LIGHTBLACK_EX}: {color}{post.title}{Fore.RESET}"
+        )
 
     print()
-    selected = input(
+    selected: str = input(
         f"{Fore.YELLOW}Select post id (or enter url): {Fore.RESET}"
     ).strip()
+    id: int
     if selected == "":
         # Latest post on chalmers.it
-        selected = latest_posts[0][0]
-
-    if re.match(r"^(https://.+|\d+)$", selected):
-        # Post on chalmers.it
-        return scrape_post(selected)
+        id = latest_posts[0].id
+    elif re.match(r"\d+", selected):
+        id = get_id(selected)
     else:
         # Text input
         lines = [selected]
@@ -55,10 +42,17 @@ def select_post() -> Post:
             lines.append(line)
         return parse_slack("\n".join(lines))
 
+    # Check if post fetched already
+    for post in latest_posts:
+        if id == post.id:
+            return post
+
+    # Get post from news service
+    return NewsService.get_news_post(id)
+
 
 def print_post(post: Post):
     print(f"{Fore.LIGHTBLACK_EX}# {Fore.RESET}" + post.title)
-    print(f"{Fore.LIGHTBLACK_EX}> {Fore.RESET}" + post.subtitle)
     print()
     print(post.body)
 
@@ -101,9 +95,6 @@ def get_session() -> OAuth2Session:
 
 
 def main():
-    # Get environment variables
-    setup_env()
-
     post = select_post()
 
     # Create calendar event

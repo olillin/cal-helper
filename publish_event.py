@@ -1,4 +1,4 @@
-from parse_event import Event
+from events_service import Event
 from typing import Any
 import json
 from colorama import Fore

@@ -1,26 +1,16 @@
 from typing import Sequence
-from scraper import Post
-from dataclasses import dataclass
+from news_service import Post
 from datetime import datetime
 from calendar import monthrange
 import re
 from colorama import Fore
+from events_service import Event
 
 DEFAULT_EVENT_DURATION = 60
 
 
 def print_context(s: str):
     print(f"\n{Fore.MAGENTA}Context:{Fore.RESET}\n{s}\n")
-
-
-@dataclass
-class Event:
-    summary: str
-    description: str
-    location: str | None
-    start: datetime
-    end: datetime
-    all_day: bool
 
 
 def find_all(
@@ -123,7 +113,7 @@ def extract_date(pattern_num: int, match: re.Match[str], body: str) -> datetime:
         raise ValueError(f"Illegal pattern number {pattern_num}")
 
     # Move to next year instead of beginning of this year
-    if not lock_year and date is not None and date < today:
+    if not lock_year and date < today:
         date = datetime(today.year + 1, date.month, date.day)
 
     return date
@@ -259,6 +249,9 @@ def find_location(body: str) -> str | None:
 
 
 def event_from_post(post: Post, default_duration: int = 60) -> Event:
+    if post.event is not None:
+        return post.event
+
     summary = post.title
     description = post.body
 
@@ -268,7 +261,7 @@ def event_from_post(post: Post, default_duration: int = 60) -> Event:
     # Location
     location = find_location(post.body)
 
-    return Event(summary, description, location, start, end, start.second == 1)
+    return Event(post.id, summary, description, location, start, end, start.second == 1)
 
 
 def format_slack_body(body: str) -> str:
@@ -282,4 +275,4 @@ def parse_slack(text: str) -> Post:
         exit()
     body = format_slack_body(text)
 
-    return Post(title, "", body)
+    return Post(-1, title, body, None)
