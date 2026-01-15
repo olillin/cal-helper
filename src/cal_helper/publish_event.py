@@ -1,9 +1,10 @@
-from .events_service import Event
-from typing import Any
 import json
+from typing import Any
+
 from colorama import Fore
 from requests_oauthlib import OAuth2Session
-from .parse_event import Event
+
+from .events_service import Event
 
 
 def event_to_body(event: Event, timezone: str = "Europe/Stockholm") -> dict[str, Any]:

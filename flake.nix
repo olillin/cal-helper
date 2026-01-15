@@ -67,7 +67,7 @@
           echo "🎨 Running formatters and linters..."
 
           echo "🐍 Running Ruff (Python)..."
-          ruff check . --fix
+          ruff check . --fix --extend-select I
           ruff format .
 
           echo "❄️  Running Alejandra (Nix)..."
