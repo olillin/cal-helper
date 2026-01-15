@@ -4,7 +4,7 @@ from typing import TypedDict
 
 import requests
 
-from env import BASE_URL
+from .env import BASE_URL
 
 
 @dataclass

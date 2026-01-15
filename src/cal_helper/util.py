@@ -1,7 +1,7 @@
 import re
 
-from events_service import Event
-from news_service import Post
+from .events_service import Event
+from .news_service import Post
 
 
 def get_id(id_or_url: str) -> int:

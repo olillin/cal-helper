@@ -1,16 +1,18 @@
 import os
 import re
+from .parse_event import Event, event_from_post, parse_slack
+from .publish_event import authorize, publish_event, refresh_token
 
 from colorama import Fore
 from requests_oauthlib import OAuth2Session
 
-from env import CALENDAR_ID, CLIENT_ID, CLIENT_SECRET, REDIRECT_URI
-from events_service import Event
-from parse_event import event_from_post, parse_slack
-from publish_event import authorize, publish_event, refresh_token
-from events_service import EventsService
-from news_service import NewsService, Post
-from util import get_id, saturate_posts
+from .env import CALENDAR_ID, CLIENT_ID, CLIENT_SECRET, REDIRECT_URI
+from .events_service import Event
+from .parse_event import event_from_post, parse_slack
+from .publish_event import authorize, publish_event, refresh_token
+from .events_service import EventsService
+from .news_service import NewsService, Post
+from .util import get_id, saturate_posts
 
 
 def select_post() -> Post:

@@ -2,8 +2,8 @@ from typing import TypedDict, Union
 import requests
 from dataclasses import dataclass
 from colorama import Fore
-from events_service import Event
-from env import BASE_URL
+from .events_service import Event
+from .env import BASE_URL
 
 
 @dataclass

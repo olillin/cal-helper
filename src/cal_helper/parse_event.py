@@ -1,10 +1,10 @@
 from typing import Sequence
-from news_service import Post
+from .news_service import Post
+from .events_service import Event
 from datetime import datetime
 from calendar import monthrange
 import re
 from colorama import Fore
-from events_service import Event
 
 DEFAULT_EVENT_DURATION = 60
 
