@@ -6,6 +6,7 @@ from colorama import Fore
 
 from .env import CHALMERS_IT_URL
 from .events_service import Event
+from .markdown import unmark
 
 
 @dataclass
@@ -36,7 +37,7 @@ class PostData(TypedDict):
 
 
 def parse_post(data: PostData) -> Post:
-    return Post(data["id"], data["titleSv"], data["contentSv"], None)
+    return Post(data["id"], data["titleSv"], unmark(data["contentSv"]), None)
 
 
 class NewsService:

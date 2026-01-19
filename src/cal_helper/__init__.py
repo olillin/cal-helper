@@ -16,13 +16,16 @@ def select_post() -> Post:
     saturate_posts(latest_posts, latest_events)
 
     print(f"\n{Fore.LIGHTGREEN_EX}Latest posts from {CHALMERS_IT_URL}\n")
+
     for post in latest_posts:
         color = Fore.WHITE if post.event is None else Fore.CYAN
+        suffix = "" if post.event is None else "*"
         print(
-            f" {Fore.LIGHTMAGENTA_EX}{post.id}{Fore.LIGHTBLACK_EX}: {color}{post.title}{Fore.RESET}"
+            f"  {Fore.LIGHTMAGENTA_EX}{post.id}{Fore.LIGHTBLACK_EX}: {color}{post.title}{suffix}{Fore.RESET}"
         )
 
-    print()
+    print(f"\n  * {Fore.CYAN}Cyan{Fore.RESET} posts have no event info\n")
+
     selected: str = input(
         f"{Fore.YELLOW}Select post id (or enter url): {Fore.RESET}"
     ).strip()
