@@ -91,7 +91,6 @@
               colorama
               python-dotenv
               requests
-              requests-oauthlib
             ]);
           env = {
             UV_NO_SYNC = "1";

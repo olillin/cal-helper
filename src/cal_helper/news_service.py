@@ -4,7 +4,7 @@ from typing import TypedDict, Union
 import requests
 from colorama import Fore
 
-from .env import BASE_URL
+from .env import CHALMERS_IT_URL
 from .events_service import Event
 
 
@@ -42,13 +42,13 @@ def parse_post(data: PostData) -> Post:
 class NewsService:
     @staticmethod
     def get_news_post(id: int) -> Post:
-        url = f"{BASE_URL}/api/news/{id}"
+        url = f"{CHALMERS_IT_URL}/api/news/{id}"
         print(f"{Fore.LIGHTBLACK_EX}URL is {url}{Fore.RESET}")
         data: PostData = requests.get(url).json()
         return parse_post(data)
 
     @staticmethod
     def get_latest_posts(count: int = 5) -> list[Post]:
-        url = f"{BASE_URL}/api/news?pageSize={count}"
+        url = f"{CHALMERS_IT_URL}/api/news?pageSize={count}"
         data: list[PostData] = requests.get(url).json()
         return [parse_post(post) for post in data]

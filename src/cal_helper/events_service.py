@@ -4,7 +4,7 @@ from typing import TypedDict
 
 import requests
 
-from .env import BASE_URL
+from .env import CHALMERS_IT_URL
 
 
 @dataclass
@@ -50,12 +50,12 @@ def parse_event(data: EventData):
 class EventsService:
     @staticmethod
     def get_event(id: int) -> Event:
-        url = f"{BASE_URL}/api/events/{id}"
+        url = f"{CHALMERS_IT_URL}/api/events/{id}"
         data: EventData = requests.get(url).json()
         return parse_event(data)
 
     @staticmethod
     def get_latest_events(count: int = 5) -> list[Event]:
-        url = f"{BASE_URL}/api/events?pageSize={count}"
+        url = f"{CHALMERS_IT_URL}/api/events?pageSize={count}"
         data: list[EventData] = requests.get(url).json()
         return [parse_event(event) for event in data]

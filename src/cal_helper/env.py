@@ -14,23 +14,25 @@ def get_required_env(name: str) -> str:
     return os.environ[name]
 
 
-def get_optional_env(name: str, default: Union[str, None] = None) -> Union[str, None]:
+def get_optional_env_with_default(name: str, default: str) -> str:
     return os.environ.get(name, default)
+
+
+def get_optional_env(name: str) -> Union[str, None]:
+    return os.environ.get(name, None)
 
 
 def setup_env():
     load_dotenv()
 
-    global CLIENT_ID
-    CLIENT_ID = get_required_env("CLIENT_ID")
-    global CLIENT_SECRET
-    CLIENT_SECRET = get_required_env("CLIENT_SECRET")
-    global REDIRECT_URI
-    REDIRECT_URI = get_required_env("REDIRECT_URI")
-    global CALENDAR_ID
-    CALENDAR_ID = get_required_env("CALENDAR_ID")
-    global BASE_URL
-    BASE_URL = get_optional_env("BASE_URL")
+    global CHALMERS_IT_URL
+    CHALMERS_IT_URL = get_optional_env_with_default(
+        "CHALMERS_IT_URL", "https://chalmers.it"
+    )
+    global TIMESEND_URL
+    TIMESEND_URL = get_optional_env_with_default(
+        "TIMESEND_URL", "https://timesend.olillin.com"
+    )
 
 
 setup_env()

@@ -7,7 +7,11 @@ authors = [{ name = 'Oli', email = 'oli@olillin.com' }]
 maintainers = [{ name = 'Oli', email = 'oli@olillin.com' }]
 
 requires-python = ">=3.13"
-dependencies = ["colorama>=0.4.6", "python-dotenv>=1.0.1", "requests>=2.32.4", "requests_oauthlib>=2.0.0"]
+dependencies = [
+    "colorama>=0.4.6",
+    "python-dotenv>=1.0.1",
+    "requests>=2.32.4",
+]
 
 [project.urls]
 "Bug Reports" = "https://github.com/olillin/cal-helper/issues"

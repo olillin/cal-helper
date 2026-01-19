@@ -1,14 +1,12 @@
-import os
 import re
 
 from colorama import Fore
-from requests_oauthlib import OAuth2Session
 
-from .env import CALENDAR_ID, CLIENT_ID, CLIENT_SECRET, REDIRECT_URI
+from .env import CHALMERS_IT_URL
 from .events_service import Event, EventsService
 from .news_service import NewsService, Post
 from .parse_event import event_from_post, parse_slack
-from .publish_event import authorize, publish_event, refresh_token
+from .timesend import create_url
 from .util import get_id, saturate_posts
 
 
@@ -17,7 +15,7 @@ def select_post() -> Post:
     latest_events = EventsService.get_latest_events(10)
     saturate_posts(latest_posts, latest_events)
 
-    print(f"{Fore.LIGHTCYAN_EX}Latest posts on chalmers.it:")
+    print(f"\n{Fore.LIGHTGREEN_EX}Latest posts from {CHALMERS_IT_URL}\n")
     for post in latest_posts:
         color = Fore.WHITE if post.event is None else Fore.CYAN
         print(
@@ -66,31 +64,10 @@ def print_event(event: Event):
             f"{Fore.LIGHTBLACK_EX}> {Fore.RESET}{event.start} {Fore.LIGHTBLACK_EX}until{Fore.RESET} {event.end}"
         )
     print()
-    print(event.description)
-
-
-def get_session() -> OAuth2Session:
-    global CLIENT_ID
-    global CLIENT_SECRET
-    global REDIRECT_URI
-
-    session = None
-    if os.path.isfile("refresh-token"):
-        try:
-            with open("refresh-token", "r", encoding="utf-8") as f:
-                token = f.read()
-            session = refresh_token(token, CLIENT_ID, CLIENT_SECRET)
-        except Exception as e:
-            print(f"{Fore.LIGHTRED_EX}Failed to refresh token:\n{e}{Fore.RESET}\n")
-
-    if not session:
-        scope = ["https://www.googleapis.com/auth/calendar.events.owned"]
-        session = authorize(CLIENT_ID, CLIENT_SECRET, scope, REDIRECT_URI)
-
-    with open("refresh-token", "w+") as f:
-        f.write(session.token.get("refresh_token"))
-
-    return session
+    if event.description == "":
+        print(f"{Fore.LIGHTBLACK_EX}No event description{Fore.RESET}")
+    else:
+        print(event.description)
 
 
 def main():
@@ -100,19 +77,16 @@ def main():
     event = event_from_post(post)
 
     # Confirm post
-    print(f"\n{Fore.LIGHTGREEN_EX}Drafted event:\n")
+    print(f"\n{Fore.LIGHTGREEN_EX}Drafted event\n")
     print_event(event)
-    print()
-    procceed = input(f"{Fore.YELLOW}Continue? (Y/n): {Fore.RESET}")
-    if procceed.lower() == "n":
-        print(f"{Fore.RED}Cancelled{Fore.RESET}")
-        exit()
 
-    print(f"\n{Fore.LIGHTGREEN_EX}Authorizing with Google{Fore.RESET}\n")
-    session = get_session()
-
-    publish_event(session, CALENDAR_ID, event)
+    print(f"\n{Fore.LIGHTGREEN_EX}Generating TimeSend URL{Fore.RESET}\n")
+    url = create_url(event)
+    print(f"{Fore.YELLOW}{url}{Fore.RESET}")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print(f"{Fore.RED}Cancelled{Fore.RESET}")
