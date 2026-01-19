@@ -63,8 +63,8 @@ month_pattern = re.compile(
 )
 
 date_patterns = [  #
-    r"(?<![:\d])(\d{1,2})/(1?\d)(?![:\d])",
-    r"(?<![:\d])(1?\d)-(\d{1,2})(?![:\d])",
+    r"(?<![:\d])(\d{1,2})\/([01]?\d)(?![:\d])",
+    r"(?<![:\d])([01]?\d)-(\d{1,2})(?![:\d])",
     month_pattern,
     weekday_pattern,
 ]
