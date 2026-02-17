@@ -9,6 +9,7 @@ maintainers = [{ name = 'Oli', email = 'oli@olillin.com' }]
 requires-python = ">=3.13"
 dependencies = [
     "colorama>=0.4.6",
+    "icalendar>=7.0.0",
     "python-dotenv>=1.0.1",
     "requests>=2.32.4",
 ]

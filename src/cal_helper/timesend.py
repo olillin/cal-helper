@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import requests
+import icalendar as ical
 
 from .env import TIMESEND_URL
 from .events_service import Event
@@ -13,38 +14,41 @@ def format_time(property: str, time: datetime, all_day: bool = False) -> str:
         return property + ":" + time.strftime("%Y%m%dT%H%M%S")
 
 
-def safe_string(text: str) -> str:
+def to_one_line(text: str) -> str:
     return text.replace("\n", "").strip()
 
-
 def event_to_ical(event: Event) -> str:
-    summary = safe_string(event.summary)
-    description = safe_string(event.description)
-    location_line = (
-        "LOCATION:" + safe_string(event.location)
+    summary = to_one_line(event.summary)
+    description = event.description.strip()
+    location = (
+        to_one_line(event.location)
         if event.location is not None
         else None
     )
-
+    start = event.start.date() if event.all_day else event.start
+    end = event.end.date() if event.all_day else event.end
     now = datetime.now()
-    lines = [
-        "BEGIN:VCALENDAR",
-        "PRODID:cal-helper",
-        "VERSION:2.0",
-        "BEGIN:VEVENT",
-        "UID:foo",
-        "SUMMARY:" + summary,
-        "DESCRIPTION:" + description,
-        location_line,
-        format_time("DTSTAMP", now),
-        format_time("DTSTART", event.start, event.all_day),
-        format_time("DTEND", event.end, event.all_day),
-        "END:VEVENT",
-        "END:VCALENDAR",
-    ]
 
-    body = "\r\n".join([line for line in lines if line is not None])
-    return body
+    # Create calendar
+    cal = ical.Calendar()
+    cal.add("PRODID", "cal-helper")
+    cal.add("VERSION", "2.0")
+
+    # Create event
+    ical_event = ical.Event()
+    ical_event.add("UID", "foo")
+    ical_event.add("SUMMARY", summary)
+    ical_event.add("DESCRIPTION", description)
+    ical_event.add("DTSTAMP", now)
+    ical_event.add("DTSTART", start)
+    ical_event.add("DTEND", end)
+    if location is not None:
+        ical_event.add("LOCATION", location)
+
+    cal.add_component(ical_event)
+
+    # Return serialized body
+    return cal.to_ical().decode("utf-8")
 
 
 def create_url(event: Event) -> str:
