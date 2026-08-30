@@ -1,5 +1,9 @@
 # cal-helper
 
+> [!WARNING]
+> **cal-helper** has been archived in favor of the
+> [Cal's cals admin panel](https://github.com/olillin/cals-cals-admin).
+
 Helper to scrape news and events from chalmers.it.
 
 ## Installation on NixOS
